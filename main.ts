@@ -1,6 +1,7 @@
 import { App, Editor, EditorPosition, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { exec } from 'child_process';
 
+const DEFAULT_OUTPUT_LIMIT = 1000;
 
 interface Codeblock {
 	lang: string,
@@ -31,7 +32,6 @@ function getCodeblockForCursor(editor: Editor): Codeblock | null {
 function validateSettingsForCodeblock(codeblock: Codeblock, settings: PluginSettings) {
 	const { lang } = codeblock;
 	const { bbPath, nbbPath, nodePath } = settings;
-	const errors = [];
 
 	if (lang == 'clojure' && !bbPath) {
 		new Notice('Please set Babashka path in settings');
@@ -46,15 +46,25 @@ function validateSettingsForCodeblock(codeblock: Codeblock, settings: PluginSett
 	return true;
 }
 
+function capCharsAt(str: string, maxChars: number) {
+	if (str.length > maxChars) {
+		return str.substring(0, maxChars) + `\n... and ${str.length - maxChars} more chars}`;
+	} else {
+		return str;
+	}
+}
+
 function executeCodeblock(codeblock: Codeblock, vaultPath: string, editor: Editor, settings: PluginSettings) {
 	const { lang, code, insertPos } = codeblock;
-	const { bbPath, nbbPath, nodePath, bbDir } = settings;
+	const { bbPath, nbbPath, nodePath, bbDir, limitOutput } = settings;
 
 	if (validateSettingsForCodeblock(codeblock, settings)) {
 		const bin = lang == 'clojure' ? bbPath : `${nodePath} ${nbbPath}`;
 		const ext = lang == 'clojure' ? 'clj' : 'cljs';
 		const pluginCwd = `${vaultPath}/${bbDir}`;
 
+		// TODO: add magic bindings
+		// https://github.com/twibiral/obsidian-execute-code#magic-commands-
 		const codeShellStr = code.replaceAll("\"", "\\\"");
 		const cmd = `${bin} -e "${codeShellStr}"`;
 
@@ -80,7 +90,8 @@ function executeCodeblock(codeblock: Codeblock, vaultPath: string, editor: Edito
 				}
 
 				if (stdout) {
-					const outputAsComments = stdout.trim().replaceAll(/^/gm, ';; ');
+					const cappedOutput = limitOutput ? capCharsAt(stdout, DEFAULT_OUTPUT_LIMIT) : stdout;
+					const outputAsComments = cappedOutput.trim().replaceAll(/^/gm, ';; ');
 					editor.replaceRange(`\n${outputAsComments}\n`, insertPos, insertPos);
 
 				}
@@ -95,6 +106,7 @@ interface PluginSettings {
 	bbPath: string,
 	nbbPath: string,
 	nodePath: string,
+	limitOutput: boolean,
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
@@ -102,6 +114,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	bbPath: '',
 	nbbPath: '',
 	nodePath: '',
+	limitOutput: true,
 }
 
 export default class BabashkaPlugin extends Plugin {
@@ -148,7 +161,7 @@ class SettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	addSetting(name: string, desc: string, placeholder: string, k: keyof PluginSettings) {
+	addTextSetting(name: string, desc: string, placeholder: string, k: keyof PluginSettings) {
 		const { containerEl } = this;
 		new Setting(containerEl)
 			.setName(name)
@@ -162,16 +175,32 @@ class SettingTab extends PluginSettingTab {
 				}));
 	}
 
+	addToggleSetting(name: string, desc: string, k: keyof PluginSettings) {
+		const { containerEl } = this;
+		new Setting(containerEl)
+			.setName(name)
+			.setDesc(desc)
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings[k])
+				.onChange(async (value) => {
+					this.plugin.settings[k] = value;
+					await this.plugin.saveSettings();
+				}));
+	}
+
 	display(): void {
 		const { containerEl } = this;
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Paths' });
+		// TODO: toggle instead hardcoded to 1k
+		containerEl.createEl('h2', { text: 'General' });
+		this.addToggleSetting('Limit output', `Output will be truncated after ${DEFAULT_OUTPUT_LIMIT} characters.`, 'limitOutput');
 
-		this.addSetting('Vault Babashka dir', 'Relative path to babashka dir from vault root. Babashka will be run from this dir. You can put bb.edn, nbb.edn, and package.json files there to use dependencies.', '', 'bbDir');
-		this.addSetting('Babashka path', 'Absolute path to babashka', 'run `which bb` to see it', 'bbPath');
-		this.addSetting('Node Babashka path', 'Absolute path to nbb', 'run `which nbb` to see it', 'nbbPath');
-		this.addSetting('Node path', 'Absolute path to node', 'run `which nbb` to see it', 'nodePath');
+		containerEl.createEl('h2', { text: 'Paths' });
+		this.addTextSetting('Vault Babashka dir', 'Relative path to babashka dir from vault root. Babashka will be run from this dir. You can put bb.edn, nbb.edn, and package.json files there to use dependencies.', '', 'bbDir');
+		this.addTextSetting('Babashka path', 'Absolute path to babashka.', 'run `which bb` to see it', 'bbPath');
+		this.addTextSetting('Node Babashka path', 'Absolute path to nbb.', 'run `which nbb` to see it', 'nbbPath');
+		this.addTextSetting('Node path', 'Absolute path to node.', 'run `which nbb` to see it', 'nodePath');
 	}
 }
