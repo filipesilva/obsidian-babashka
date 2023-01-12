@@ -1,9 +1,13 @@
-import { App, Editor, EditorPosition, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, EditorPosition, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, FileSystemAdapter } from 'obsidian';
 import { exec } from 'child_process';
 import { existsSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 const DEFAULT_OUTPUT_LIMIT = 1000;
+
+function getVaultRoot(app: App) {
+	return (app.vault.adapter as FileSystemAdapter).getBasePath();
+}
 
 interface Codeblock {
 	lang: string,
@@ -18,8 +22,8 @@ function getCodeblockForCursor(editor: Editor): Codeblock | null {
 	const cljRe = /^```(clojure|clojurescript)$\s([\s\S]*?)^```$/gmd;
 	const cljCodeblocks = Array.from(src.matchAll(cljRe));
 	const cursorOffset = editor.posToOffset(cursor);
-	const insideMatch = offset => match => match.indices[0][0] <= offset && offset <= match.indices[0][1];
-	const match = cljCodeblocks.find(insideMatch(cursorOffset));
+	const insideMatch = (offset: any) => (match: any) => match.indices[0][0] <= offset && offset <= match.indices[0][1];
+	const match: any = cljCodeblocks.find(insideMatch(cursorOffset));
 
 	if (match) {
 		return {
@@ -63,7 +67,7 @@ function resolvePluginFolder(vaultPath: string, settings: PluginSettings) {
 }
 
 function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSettings) {
-	const vaultPath = app.vault.adapter.getBasePath();
+	const vaultPath = getVaultRoot(this.app);
 	const pluginFolder = resolvePluginFolder(vaultPath, settings);
 	const bindingsNsPath = `${pluginFolder}/gen/vault_bindings.cljc`;
 
@@ -82,7 +86,7 @@ function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSett
 }
 
 function writeDefaultBbEdn(app: App, settings: PluginSettings) {
-	const vaultPath = app.vault.adapter.getBasePath();
+	const vaultPath = getVaultRoot(this.app);
 	const pluginFolder = resolvePluginFolder(vaultPath, settings);
 	const bbEdnPath = `${pluginFolder}/bb.edn`;
 	const nbbEdnPath = `${pluginFolder}/nbb.edn`;
@@ -179,7 +183,7 @@ export default class BabashkaPlugin extends Plugin {
 				if (codeblock) {
 					writeVaultBindingsNs(this.app, view, this.settings);
 					writeDefaultBbEdn(this.app, this.settings);
-					const vaultPath = this.app.vault.adapter.getBasePath();
+					const vaultPath = getVaultRoot(this.app);
 					executeCodeblock(codeblock, "inside", vaultPath, editor, this.settings);
 				} else {
 					new Notice('No clojure(script) codeblock found');
@@ -195,7 +199,7 @@ export default class BabashkaPlugin extends Plugin {
 				if (codeblock) {
 					writeVaultBindingsNs(this.app, view, this.settings);
 					writeDefaultBbEdn(this.app, this.settings);
-					const vaultPath = this.app.vault.adapter.getBasePath();
+					const vaultPath = getVaultRoot(this.app);
 					executeCodeblock(codeblock, "outside", vaultPath, editor, this.settings);
 				} else {
 					new Notice('No clojure(script) codeblock found');
@@ -232,9 +236,9 @@ class SettingTab extends PluginSettingTab {
 			.setDesc(desc)
 			.addText(text => text
 				.setPlaceholder(placeholder)
-				.setValue(this.plugin.settings[k])
+				.setValue(this.plugin.settings[k] as string)
 				.onChange(async (value) => {
-					this.plugin.settings[k] = value;
+					(this.plugin.settings as any)[k] = value;
 					await this.plugin.saveSettings();
 				}));
 	}
@@ -245,9 +249,9 @@ class SettingTab extends PluginSettingTab {
 			.setName(name)
 			.setDesc(desc)
 			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings[k])
+				.setValue(this.plugin.settings[k] as boolean)
 				.onChange(async (value) => {
-					this.plugin.settings[k] = value;
+					(this.plugin.settings as any)[k] = value;
 					await this.plugin.saveSettings();
 				}));
 	}
