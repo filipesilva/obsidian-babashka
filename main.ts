@@ -8,7 +8,8 @@ const DEFAULT_OUTPUT_LIMIT = 1000;
 interface Codeblock {
 	lang: string,
 	code: string,
-	insertPos: EditorPosition,
+	insideInsertPos: EditorPosition,
+	outsideInsertPos: EditorPosition,
 }
 
 function getCodeblockForCursor(editor: Editor): Codeblock | null {
@@ -24,7 +25,8 @@ function getCodeblockForCursor(editor: Editor): Codeblock | null {
 		return {
 			lang: match[1],
 			code: match[2],
-			insertPos: editor.offsetToPos(match.indices[2][1]),
+			insideInsertPos: editor.offsetToPos(match.indices[2][1]),
+			outsideInsertPos: editor.offsetToPos(match.indices[0][1]),
 		}
 	} else {
 		return null;
@@ -95,8 +97,10 @@ function writeDefaultBbEdn(app: App, settings: PluginSettings) {
 	}
 }
 
-function executeCodeblock(codeblock: Codeblock, vaultPath: string, editor: Editor, settings: PluginSettings) {
-	const { lang, code, insertPos } = codeblock;
+function executeCodeblock(
+	codeblock: Codeblock, insertAt: "inside" | "outside",
+	vaultPath: string, editor: Editor, settings: PluginSettings) {
+	const { lang, code, insideInsertPos, outsideInsertPos } = codeblock;
 	const { bbPath, nbbPath, nodePath, bbDir, limitOutput } = settings;
 
 	if (validateSettingsForCodeblock(codeblock, settings)) {
@@ -129,9 +133,13 @@ function executeCodeblock(codeblock: Codeblock, vaultPath: string, editor: Edito
 
 				if (stdout) {
 					const cappedOutput = limitOutput ? capCharsAt(stdout, DEFAULT_OUTPUT_LIMIT) : stdout;
-					const outputAsComments = cappedOutput.trim().replaceAll(/^/gm, ';; ');
-					editor.replaceRange(`\n${outputAsComments}\n`, insertPos, insertPos);
 
+					if (insertAt == "inside") {
+						const outputAsComments = cappedOutput.trim().replaceAll(/^/gm, ';; ');
+						editor.replaceRange(`\n${outputAsComments}\n`, insideInsertPos, insideInsertPos);
+					} else if (insertAt == "outside") {
+						editor.replaceRange(`\n\n${cappedOutput}`, outsideInsertPos, outsideInsertPos);
+					}
 				}
 				console.debug(`babashka stdout:\n${stdout}`);
 				console.debug(`babashka stderr:\n${stderr}`);
@@ -172,7 +180,23 @@ export default class BabashkaPlugin extends Plugin {
 					writeVaultBindingsNs(this.app, view, this.settings);
 					writeDefaultBbEdn(this.app, this.settings);
 					const vaultPath = this.app.vault.adapter.getBasePath();
-					executeCodeblock(codeblock, vaultPath, editor, this.settings);
+					executeCodeblock(codeblock, "inside", vaultPath, editor, this.settings);
+				} else {
+					new Notice('No clojure(script) codeblock found');
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'obsidian-babashka-execute-codeblock-print-outside',
+			name: 'Execute codeblock and print outside',
+			editorCallback: async (editor: Editor, view: MarkdownView) => {
+				const codeblock = getCodeblockForCursor(editor);
+				if (codeblock) {
+					writeVaultBindingsNs(this.app, view, this.settings);
+					writeDefaultBbEdn(this.app, this.settings);
+					const vaultPath = this.app.vault.adapter.getBasePath();
+					executeCodeblock(codeblock, "outside", vaultPath, editor, this.settings);
 				} else {
 					new Notice('No clojure(script) codeblock found');
 				}
