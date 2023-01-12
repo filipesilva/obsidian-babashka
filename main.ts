@@ -257,7 +257,6 @@ class SettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		// TODO: toggle instead hardcoded to 1k
 		containerEl.createEl('h2', { text: 'General' });
 		this.addToggleSetting('Limit output', `Output will be truncated after ${DEFAULT_OUTPUT_LIMIT} characters.`, 'limitOutput');
 

@@ -2,7 +2,7 @@
 	"id": "obsidian-babashka",
 	"name": "Babashka",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.1.9",
 	"description": "Run Clojure(Script) codeblocks in Babashka.",
 	"author": "Filipe Silva",
 	"authorUrl": "https://github.com/filipesilva",
