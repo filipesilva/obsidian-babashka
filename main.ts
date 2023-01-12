@@ -143,7 +143,7 @@ interface PluginSettings {
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
-	bbDir: 'babashka',
+	bbDir: '.babashka',
 	bbPath: '',
 	nbbPath: '',
 	nodePath: '',
