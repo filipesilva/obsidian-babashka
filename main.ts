@@ -1,6 +1,7 @@
 import { App, Editor, EditorPosition, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { exec } from 'child_process';
 import { existsSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
 
 const DEFAULT_OUTPUT_LIMIT = 1000;
 
@@ -55,9 +56,13 @@ function capCharsAt(str: string, maxChars: number) {
 	}
 }
 
+function resolvePluginFolder(vaultPath: string, settings: PluginSettings) {
+	return resolve(vaultPath, settings.bbDir);
+}
+
 function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSettings) {
 	const vaultPath = app.vault.adapter.getBasePath();
-	const pluginFolder = `${vaultPath}/${settings.bbDir}`;
+	const pluginFolder = resolvePluginFolder(vaultPath, settings);
 	const bindingsNsPath = `${pluginFolder}/gen/vault_bindings.cljc`;
 
 	const src = `(ns vault-bindings)
@@ -76,7 +81,7 @@ function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSett
 
 function writeDefaultBbEdn(app: App, settings: PluginSettings) {
 	const vaultPath = app.vault.adapter.getBasePath();
-	const pluginFolder = `${vaultPath}/${settings.bbDir}`;
+	const pluginFolder = resolvePluginFolder(vaultPath, settings);
 	const bbEdnPath = `${pluginFolder}/bb.edn`;
 	const nbbEdnPath = `${pluginFolder}/nbb.edn`;
 	const src = `{:paths ["gen"]}`;
@@ -233,7 +238,7 @@ class SettingTab extends PluginSettingTab {
 		this.addToggleSetting('Limit output', `Output will be truncated after ${DEFAULT_OUTPUT_LIMIT} characters.`, 'limitOutput');
 
 		containerEl.createEl('h2', { text: 'Paths' });
-		this.addTextSetting('Vault Babashka dir', 'Relative path to babashka dir from vault root. Babashka will be run from this dir. You can put bb.edn, nbb.edn, and package.json files there to use dependencies.', '', 'bbDir');
+		this.addTextSetting('Vault Babashka dir', 'Path to babashka dir from vault root. Can be absolute. Babashka will be run from this dir. You can put bb.edn, nbb.edn, and package.json files there to use dependencies.', '', 'bbDir');
 		this.addTextSetting('Babashka path', 'Absolute path to babashka.', 'run `which bb` to see it', 'bbPath');
 		this.addTextSetting('Node Babashka path', 'Absolute path to nbb.', 'run `which nbb` to see it', 'nbbPath');
 		this.addTextSetting('Node path', 'Absolute path to node.', 'run `which nbb` to see it', 'nodePath');
