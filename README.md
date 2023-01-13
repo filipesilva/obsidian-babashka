@@ -4,8 +4,16 @@ Obsidian Babashka is a plugin for [Obsidian](https://obsidian.md/) that lets you
 
 The main usecase for this plugin is scripting in the context of your vault documents.
 
-You need to set absolute paths for `bb` (for clojure), and/or `nbb` and `node` (for clojurescript) in the plugin settings before executing code blocks.
+
+## Pre-requisites
+
+You'll need to have [Babashka](https://github.com/babashka/babashka#installation) installed for `clojure` codeblocks, and/or [Node](https://nodejs.org/en/download/) and [Node Babashka](https://github.com/babashka/nbb#usage) installed for `clojurescript` codeblocks.
+
+You need to set absolute paths for `bb` (for clojure), and/or `node` and `nbb` (for clojurescript) in the plugin settings before executing code blocks.
 You can find these paths using the `where` command in the terminal.
+
+If you come from a Clojure background but are not familiar with Babashka, keep in mind that Babashka has differences from Clojure, and also has included libraries that are not in Clojure.
+Take a look at the Babashka and Node Babashka docs to learn more about what's available.
 
 
 ## Features
