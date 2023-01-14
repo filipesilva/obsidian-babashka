@@ -75,8 +75,15 @@ The `vault-bindings` namespace is in `.babashka/gen/vault-bindings.cljc`, and is
 
 ## Roadmap
 
-I'd like to add a command to start a REPL, and a command to kill all running processes initiated by the plugin.
+I'd like to add a command to start a Babashka REPL of the code block type.
+Then all the executed code blocks would be sent to the REPL instead of being executed as one-off commands.
 
+If there's a REPL, I'd also need a command to kill all running processes initiated by the plugin.
+This would be useful for killing the REPL, and also for killing any one-off command processes that are still running.
+
+Starting an in-process nbb repl with access to the editor command bindings sounds interesting.
+It might help with debugging, and also with writing code that interacts with the editor.
+But it might also be a bad idea, since it could only be force killed by killing the editor process.
 
 ## Prior Art
 
