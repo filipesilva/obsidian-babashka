@@ -1,6 +1,6 @@
 import { App, Editor, EditorPosition, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, FileSystemAdapter } from 'obsidian';
 import { exec } from 'child_process';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 
 const DEFAULT_OUTPUT_LIMIT = 1000;
@@ -66,6 +66,16 @@ function resolvePluginFolder(vaultPath: string, settings: PluginSettings) {
 	return resolve(vaultPath, settings.bbDir);
 }
 
+function writePluginFolder(app: App, settings: PluginSettings) {
+	const vaultPath = getVaultRoot(app);
+	const pluginFolder = resolvePluginFolder(vaultPath, settings);
+	const genFolder = `${pluginFolder}/gen`;
+
+	if (!existsSync(genFolder)) {
+		mkdirSync(genFolder, { recursive: true });
+	}
+}
+
 function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSettings) {
 	const vaultPath = getVaultRoot(this.app);
 	const pluginFolder = resolvePluginFolder(vaultPath, settings);
@@ -99,6 +109,12 @@ function writeDefaultBbEdn(app: App, settings: PluginSettings) {
 	if (!existsSync(nbbEdnPath)) {
 		writeFileSync(nbbEdnPath, src);
 	}
+}
+
+function setupPluginFolder(app: App, view: MarkdownView, settings: PluginSettings) {
+	writePluginFolder(app, settings);
+	writeVaultBindingsNs(app, view, settings);
+	writeDefaultBbEdn(app, settings);
 }
 
 function executeCodeblock(
@@ -181,8 +197,7 @@ export default class BabashkaPlugin extends Plugin {
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const codeblock = getCodeblockForCursor(editor);
 				if (codeblock) {
-					writeVaultBindingsNs(this.app, view, this.settings);
-					writeDefaultBbEdn(this.app, this.settings);
+					setupPluginFolder(this.app, view, this.settings);
 					const vaultPath = getVaultRoot(this.app);
 					executeCodeblock(codeblock, "inside", vaultPath, editor, this.settings);
 				} else {
@@ -197,8 +212,7 @@ export default class BabashkaPlugin extends Plugin {
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const codeblock = getCodeblockForCursor(editor);
 				if (codeblock) {
-					writeVaultBindingsNs(this.app, view, this.settings);
-					writeDefaultBbEdn(this.app, this.settings);
+					setupPluginFolder(this.app, view, this.settings);
 					const vaultPath = getVaultRoot(this.app);
 					executeCodeblock(codeblock, "outside", vaultPath, editor, this.settings);
 				} else {
