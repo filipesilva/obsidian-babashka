@@ -56,7 +56,7 @@ function validateSettingsForCodeblock(codeblock: Codeblock, settings: PluginSett
 
 function capCharsAt(str: string, maxChars: number) {
 	if (str.length > maxChars) {
-		return str.substring(0, maxChars) + `\n... and ${str.length - maxChars} more chars}`;
+		return str.substring(0, maxChars) + `\n... and ${str.length - maxChars} more chars`;
 	} else {
 		return str;
 	}
