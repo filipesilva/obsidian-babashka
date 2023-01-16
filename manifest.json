@@ -3,7 +3,7 @@
 	"name": "Babashka",
 	"version": "1.0.2",
 	"minAppVersion": "1.1.9",
-	"description": "Run Clojure(Script) codeblocks in Babashka.",
+	"description": "Evaluate Clojure(Script) codeblocks in Babashka.",
 	"author": "Filipe Silva",
 	"authorUrl": "https://github.com/filipesilva",
 	"isDesktopOnly": true
