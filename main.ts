@@ -167,6 +167,13 @@ function insertOutput(editor: Editor, output: string, insertAt: "inside" | "outs
 	}
 }
 
+function removeProcess(p: ChildProcess) {
+	const index = PROCESSES.indexOf(p);
+	if (index > -1) {
+		PROCESSES.splice(index, 1);
+	}
+}
+
 function evalCodeblockInCLI(
 	codeblock: Codeblock, insertAt: "inside" | "outside",
 	vaultPath: string, editor: Editor, settings: PluginSettings) {
@@ -194,6 +201,7 @@ function evalCodeblockInCLI(
 			if (out) {
 				insertOutput(editor, out, insertAt, codeblock);
 			}
+			removeProcess(evalProcess);
 		});
 
 	PROCESSES.push(evalProcess);
@@ -347,10 +355,7 @@ function startAndConnectRepl(app: App, editor: Editor, view: MarkdownView, setti
 
 		replProcess.on('close', (code) => {
 			debug(`repl close: child process exited with code ${code}`);
-			const index = PROCESSES.indexOf(replProcess);
-			if (index > -1) {
-				PROCESSES.splice(index, 1);
-			}
+			removeProcess(replProcess);
 			killClient(lang);
 		});
 	}
