@@ -170,10 +170,10 @@ function evalCodeblockInCLI(
 	codeblock: Codeblock, insertAt: "inside" | "outside",
 	vaultPath: string, editor: Editor, settings: PluginSettings) {
 	const { lang, code } = codeblock;
-	const { bbPath, nbbPath, nodePath, bbDir, limitOutput } = settings;
+	const { bbPath, nbbPath, nodePath, limitOutput } = settings;
 
 	const bin = lang == 'clojure' ? bbPath : `${nodePath} ${nbbPath}`;
-	const pluginCwd = `${vaultPath}/${bbDir}`;
+	const pluginCwd = resolvePluginFolder(vaultPath, settings);
 
 	const codeShellStr = code.replaceAll("\"", "\\\"");
 	const cmd = `${bin} -e "${codeShellStr}"`;
@@ -299,8 +299,8 @@ function startAndConnectRepl(app: App, editor: Editor, view: MarkdownView, setti
 		}
 
 		const vaultPath = getVaultRoot(app);
-		const { bbPath, nbbPath, nodePath, bbDir, bbnReplPort, nbbnReplPort } = settings;
-		const pluginCwd = `${vaultPath}/${bbDir}`;
+		const { bbPath, nbbPath, nodePath, bbnReplPort, nbbnReplPort } = settings;
+		const pluginCwd = resolvePluginFolder(vaultPath, settings);
 
 		const bin = lang == 'clojure' ? bbPath : nodePath;
 		const port = lang == 'clojure' ? bbnReplPort : nbbnReplPort;
