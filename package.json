@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-babashka",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Babashka plugin for Obsidian",
 	"main": "main.js",
 	"scripts": {
