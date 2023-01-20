@@ -109,6 +109,7 @@ function writeVaultBindingsNs(app: App, view: MarkdownView, settings: PluginSett
 (def *last-folder-path* "${vaultPath}/${view.file.parent.path}")
 (def *last-file-name* "${view.file.name}")
 (def *last-file-path* "${vaultPath}/${view.file.path}")
+(def *vault-plugin-folder* "${pluginFolder}")
 `;
 
 	writeFileSync(bindingsNsPath, src);
