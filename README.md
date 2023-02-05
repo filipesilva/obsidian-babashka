@@ -102,6 +102,10 @@ The `vault-bindings` namespace is in `.babashka/gen/vault-bindings.cljc`, and is
 
 ## Roadmap
 
+I'd like to save a couple of codeblocks to use with shortcuts. 
+This way you could run that code over a different context, and even use text selection as an input.
+I imagine text selection would be added to *vault-bindings*.
+
 Starting an in-process nbb repl with access to the editor command bindings sounds interesting.
 It might help with debugging, and also with writing code that interacts with the editor.
 But it might also be a bad idea, since it could only be force killed by killing the editor process.
