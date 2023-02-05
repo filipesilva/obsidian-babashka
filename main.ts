@@ -383,7 +383,7 @@ export default class BabashkaPlugin extends Plugin {
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.addCommand({
-			id: 'obsidian-babashka-eval-codeblock',
+			id: 'babashka-eval-codeblock',
 			name: 'Eval codeblock',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				evalAndInsert(this.app, editor, view, this.settings, "inside");
@@ -391,7 +391,7 @@ export default class BabashkaPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-babashka-eval-codeblock-print-outside',
+			id: 'babashka-eval-codeblock-print-outside',
 			name: 'Eval codeblock and print value outside',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				evalAndInsert(this.app, editor, view, this.settings, "outside");
@@ -399,7 +399,7 @@ export default class BabashkaPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-babashka-start-and-connect-nrepl',
+			id: 'babashka-start-and-connect-nrepl',
 			name: 'Start and connect to a nREPL server',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				startAndConnectRepl(this.app, editor, view, this.settings, statusBarItemEl);
@@ -407,7 +407,7 @@ export default class BabashkaPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-babashka-kill-all-processes',
+			id: 'babashka-kill-all-processes',
 			name: 'Kill all babashka processes',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				killAllProcesses();
