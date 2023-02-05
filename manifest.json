@@ -1,7 +1,7 @@
 {
 	"id": "babashka",
 	"name": "Babashka",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"minAppVersion": "1.1.9",
 	"description": "Evaluate Clojure(Script) codeblocks in Babashka.",
 	"author": "Filipe Silva",
