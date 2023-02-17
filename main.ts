@@ -256,30 +256,26 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	nbbnReplPort: 1668,
 }
 
-function validateAndSetup(codeblock: Codeblock | null, view: MarkdownView, settings: PluginSettings): boolean {
-	if (codeblock) {
-		if (validateSettingsForCodeblock(codeblock, settings)) {
-			setupPluginFolder(app, view, settings);
-			return true;
-		}
-		return false;
-	} else {
-		new Notice('No clojure(script) codeblock found at cursor');
-		return false;
+function validateAndSetup(codeblock: Codeblock, view: MarkdownView, settings: PluginSettings): boolean {
+	if (validateSettingsForCodeblock(codeblock, settings)) {
+		setupPluginFolder(app, view, settings);
+		return true;
 	}
+	return false;
 }
 
 function evalAndInsert(
 	app: App, editor: Editor, view: MarkdownView,
 	settings: PluginSettings, insertAt: "inside" | "outside") {
 	const codeblock = getCodeblockForCursor(editor);
-	if (validateAndSetup(codeblock, view, settings)) {
-		const codeblockForSure = codeblock as Codeblock;
-		const client = REPL_CLIENTS[codeblockForSure.lang];
+	if (!codeblock) {
+		new Notice('No clojure(script) codeblock found at cursor');
+	} else if (validateAndSetup(codeblock, view, settings)) {
+		const client = REPL_CLIENTS[codeblock.lang];
 		if (client) {
-			evalCodeblockInRepl(client, codeblockForSure, insertAt, editor, settings);
+			evalCodeblockInRepl(client, codeblock, insertAt, editor, settings);
 		} else {
-			evalCodeblockInCLI(codeblockForSure, insertAt, getVaultRoot(app), editor, settings);
+			evalCodeblockInCLI(codeblock, insertAt, getVaultRoot(app), editor, settings);
 		}
 	}
 }
@@ -299,9 +295,10 @@ function killClient(lang: string, client = REPL_CLIENTS[lang]) {
 
 function startAndConnectRepl(app: App, editor: Editor, view: MarkdownView, settings: PluginSettings, statusBarItemEl: HTMLElement) {
 	const codeblock = getCodeblockForCursor(editor);
-
-	if (validateAndSetup(codeblock, view, settings)) {
-		const lang = (codeblock as Codeblock).lang;
+	if (!codeblock) {
+		new Notice('No clojure(script) codeblock found at cursor');
+	} else if (validateAndSetup(codeblock, view, settings)) {
+		const lang = codeblock.lang;
 		if (REPL_CLIENTS[lang]) {
 			new Notice(`A ${lang} repl is already connected.`);
 			return;
