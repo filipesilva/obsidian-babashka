@@ -37,6 +37,19 @@ Take a look at the Babashka and Node Babashka docs to learn more about what's av
 
 ![vault-bindings](./docs/vault-bindings.jpg)
 
+Here's the code if you want to copy paste:
+```clojure
+(require '[vault-bindings :as vb])
+
+[vb/*vault-name*
+ vb/*vault-path*
+ vb/*vault-babashka-path*
+ vb/*last-folder-path*
+ vb/*last-file-name*
+ vb/*last-file-path*
+ vb/*vault-plugin-folder*]
+```
+
 
 ### Blocking async support in both clj and cljs due to Babashka being awesome
 
